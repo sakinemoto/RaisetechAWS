@@ -2,7 +2,15 @@
 以下課題提出のエビデンスになります
 <img width="1149" alt="スクリーンショット 2023-04-24 7 14 45" src="https://user-images.githubusercontent.com/88425419/233868990-9a202ae6-31b3-4b86-bc5f-9dd35ecd7ead.png">
 
-<img width="1729" alt="スクリーンショット 2023-04-24 7 08 17" src="https://user-images.githubusercontent.com/88425419/233868755-d95c9911-bdec-430f-900f-b759526b44f3.png">
+<img width="1729" alt="スクリーンショット 2023-04-24 7 08 17" src="https://user-images.githubusercontent.com/88425419/233868755-d95c9911-bdec-430f-900f-b759526b44f3.png">  
+
+#### 追加エビデンス（mysqlが動作しているブラウザ画面とCUI画面）
+<img width="443" alt="スクリーンショット 2023-04-28 6 46 21" src="https://user-images.githubusercontent.com/88425419/234998197-1cd5f2b6-8c14-42f1-aa3c-accc49662008.png">
+ 
+
+<img width="643" alt="スクリーンショット 2023-04-28 6 52 59" src="https://user-images.githubusercontent.com/88425419/234999293-623555f0-aab3-4f76-bd29-b9a96a73d94a.png">
+
+
 
 ## APサーバーについて
 Puma version: 5.6.5  
@@ -13,7 +21,12 @@ Puma version: 5.6.5
 ## DBサーバーについて
 使用DBサーバー：mysql 
 バージョン:5.5.8
-- DBサーバーを終了させてもアクセス可能だった
+- ~~DBサーバーを終了させてもアクセス可能だった~~  
+  
+追記）  
+- PCのターミナルからmysqlを終了させていた。
+- cloud9でのmysqlを終了させたところAPサーバーと同じ画面が出てアクセル不可になった。
+
 
 ## Rails構成管理ツールについて
 bundler

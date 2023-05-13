@@ -41,3 +41,6 @@ ssh接続ができない
   
 <img width="1256" alt="RDS接続" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/d81b6cf2-2a2d-42a3-b274-80e0845d895b">
 
+### 追記
+mysqlの事前準備をしていなかったため、ドキュメント通りに実行、問題なく完了
+<img width="1256" alt="mysqlの事前準備" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/8112834b-41c4-43a9-a9ac-becafd58ed3f">

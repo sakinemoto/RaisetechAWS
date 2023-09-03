@@ -65,7 +65,7 @@ curl -fsSL https://raw.githubusercontent.com/MasatoshiMizumoto/raisetech_documen
 1.  データベースの作成  
   `bin/rails db:create`   
   `bin/rails db:migrate`  
-</br>
+
 ## 組み込みサーバー（puma）での動作確認　　
 - EC2インバウンドルールーでポート3000を開放
    - セキュリティグループで「ルールの追加」
@@ -80,17 +80,17 @@ curl -fsSL https://raw.githubusercontent.com/MasatoshiMizumoto/raisetech_documen
      ```bash
      Sprockets::Rails::Helper::AssetNotFound in Fruits#index
      ```
-     →アセットのプリコンパイルで解決  
-     `rake assets:precompile`   
-</br>
+     ### →アセットのプリコンパイルで解決  
+      `rake assets:precompile`  
 
-<img width="1253" alt="pumaで起動" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/8fcb1e3e-9765-4e29-88c4-42097fe77070">  
-データ作成
-<img width="1699" alt="create" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/5f8c2409-1401-431c-a30d-88688b926b1e">
-</br>  
+
+![pume](img/pumaで起動.png)  
+
+データ作成   
+![create](img/create.png)   
 データ削除
-<img width="1431" alt="delete" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/aca12ba2-6b06-4a02-bdd7-f8f6b3a6ee61">
-  
+![delete](img/delete.png)  
+
 ## Nginx（webサーバー）とunicorn(APサーバー)に分けてデプロイ  
   ### まずはNginxとpumaでデプロイできるか確認
   - Nginxをインストール  
@@ -169,7 +169,7 @@ bundle exec unicorn -c config/unicorn.rb -d
      - nginx/config のuserを nginxから ec2-user に修正
   ### →　エラー解消！　表示された
 
-<img width="1244" alt="nginxunicorn_起動" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/d5fe882c-fd43-42d8-b8ff-95ece3233eb6">
+![](img/nginxunicorn_起動.png)
 
 
 ---  
@@ -217,11 +217,10 @@ Rails.application.configure do
   # ALBのDNS名を追加
   config.hosts << "DNS名"
   ```  
- #### →接続！  
- <img width="1604" alt="スクリーンショット 2023-08-14 13 51 44" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/312a08cb-7c6b-428d-b82c-50b60ced4162">  
+ ### →接続！  
 
- <img width="1424" alt="healthcheck" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/f89dc0e8-a517-4706-b21f-b50066e9dbc9">
-
+![](img/ELB_top.png)    
+![](img/healthcheck.png)
   
 ---
 ハマったところ
@@ -233,6 +232,7 @@ Rails.application.configure do
 #### 画像の保存先をS3に設定する  
 1. AWSのコンソールからバケットを作成  
 2. 作成したバケットにだけアクセスできるIAMポリシーを作成  
+   
     ```json
     {
       "Version": "2012-10-17",
@@ -264,7 +264,7 @@ Rails.application.configure do
     ```
 6. credential.ymlの編集 
    - ターミナルでエディタを開く  
-  ```EDITOR="vim " bin/rails credentials:edit```   </br></br>
+  ```EDITOR="vim " bin/rails credentials:edit```  
     - コメントアウトしてキーを入力する
       ```json  
       # aws:
@@ -280,13 +280,11 @@ Rails.application.configure do
    ```aws sts get-caller-identity```
 3. アプリから画像保存、awsコンソールでオブジェクトがあるか確認  
 
-→　保存できた！  
+### →　保存できた！  
 
-<img width="1259" alt="bucket" src="https://github.com/sakinemoto/RaisetechAWS/assets/88425419/fcdd0aa4-c252-4fd9-a62a-f15ab3f4dff7">
-
-
-### 構成図  
-![lecture05](https://github.com/sakinemoto/RaisetechAWS/assets/88425419/9d3c89de-ced2-48a0-8f7c-418621a8c537)
+![bucket](img/bucket.png)
 
 
+## 構成図  
 
+![lecture05](img/lecture05.png)

@@ -251,8 +251,8 @@ Rails.application.configure do
 3. S3用のIAMユーザーを作成
    - ２で作ったポリシーをアタッチする  
    - アクセスキーとシークレットアクセスキーを作成
-4. config/environments/development.rbを編集
-   ```config.active.storage.service=amazon```
+4. config/environments/development.rbを編集  
+   `config.active.storage.service=amazon`
 5. config/storage.ymlを編集
    ```json
    amazon:

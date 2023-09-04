@@ -232,7 +232,7 @@ Rails.application.configure do
 #### 画像の保存先をS3に設定する  
 1. AWSのコンソールからバケットを作成  
 2. 作成したバケットにだけアクセスできるIAMポリシーを作成  
-   
+
     ```json
     {
       "Version": "2012-10-17",
@@ -246,15 +246,15 @@ Rails.application.configure do
           }
       ]
     }
-     ```  
+    ```  
 
 3. S3用のIAMユーザーを作成
    - ２で作ったポリシーをアタッチする  
    - アクセスキーとシークレットアクセスキーを作成
 4. config/environments/development.rbを編集  
-   `config.active.storage.service=amazon`
+   ```config.active.storage.service=amazon```
 5. config/storage.ymlを編集
-   ```json
+   ```yaml
    amazon:
     service: S3
     access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
@@ -262,7 +262,7 @@ Rails.application.configure do
     region: リージョン
     bucket: バケット名
     ```
-6. credential.ymlの編集 
+6. credential.ymlの編集  
    - ターミナルでエディタを開く  
   ```EDITOR="vim " bin/rails credentials:edit```  
     - コメントアウトしてキーを入力する

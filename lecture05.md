@@ -232,7 +232,6 @@ Rails.application.configure do
 #### 画像の保存先をS3に設定する  
 1. AWSのコンソールからバケットを作成  
 2. 作成したバケットにだけアクセスできるIAMポリシーを作成  
-
     ```json
     {
       "Version": "2012-10-17",
@@ -252,38 +251,37 @@ Rails.application.configure do
    - ２で作ったポリシーをアタッチする  
    - アクセスキーとシークレットアクセスキーを作成
 4. config/environments/development.rbを編集  
-   ```config.active.storage.service=amazon```
+   `config.active.storage.service=amazon`
 5. config/storage.ymlを編集
-   ```yaml
+```yaml
    amazon:
     service: S3
     access_key_id: <%= Rails.application.credentials.dig(:aws, :access_key_id) %>
    secret_access_key: <%= Rails.application.credentials.dig(:aws, :secret_access_key) %>
     region: リージョン
     bucket: バケット名
-    ```
+```  
 6. credential.ymlの編集  
    - ターミナルでエディタを開く  
-  ```EDITOR="vim " bin/rails credentials:edit```  
-    - コメントアウトしてキーを入力する
-      ```json  
+  `EDITOR="vim" bin/rails credentials:edit`  
+    - コメントアウトしてキーを入力する  
+    ```yaml
       # aws:
       #   access_key_id: 123
       #   secret_access_key: 345
-      ```
+    ```  
     →問題なければ保存される  
-    ```File encrypted and saved.```
+    `File encrypted and saved.`  
 #### ここまでで、何度やってもcredentialのエラーになるため、aws CLIでアクセスキー登録する方向に変更  
-1. アクセスキーを登録
-   ```aws configure```
+1. アクセスキーを登録  
+   `aws configure`  
 2. IAMユーザーを確認  
-   ```aws sts get-caller-identity```
+   `aws sts get-caller-identity`  
 3. アプリから画像保存、awsコンソールでオブジェクトがあるか確認  
 
 ### →　保存できた！  
 
 ![bucket](img/bucket.png)
-
 
 ## 構成図  
 

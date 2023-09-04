@@ -84,7 +84,7 @@ curl -fsSL https://raw.githubusercontent.com/MasatoshiMizumoto/raisetech_documen
       `rake assets:precompile`  
 
 
-![pume](img/pumaで起動.png)  
+![puma](img/pumaで起動.png)  
 
 データ作成   
 ![create](img/create.png)   
@@ -232,27 +232,29 @@ Rails.application.configure do
 #### 画像の保存先をS3に設定する  
 1. AWSのコンソールからバケットを作成  
 2. 作成したバケットにだけアクセスできるIAMポリシーを作成  
-    ```json
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-          {
-              "Effect": "Allow",
-              "Action": "s3:*",
-              "Resource": [
-                  "arn:aws:s3:::raisetech-nemoto/*"
-              ]
-          }
-      ]
-    }
-    ```  
 
-3. S3用のIAMユーザーを作成
-   - ２で作ったポリシーをアタッチする  
-   - アクセスキーとシークレットアクセスキーを作成
+```json
+ {
+  "Version": "2012-10-17",
+   "Statement": [
+      {
+          "Effect": "Allow",
+           "Action": "s3:*",
+           "Resource": [
+               "arn:aws:s3:::raisetech-nemoto/*"
+         ]
+      }
+   ]
+  }
+```  
+
+3. S3用のIAMユーザーを作成  
+   - ２で作ったポリシーをアタッチする    
+   - アクセスキーとシークレットアクセスキーを作成  
 4. config/environments/development.rbを編集  
-   `config.active.storage.service=amazon`
-5. config/storage.ymlを編集
+   `config.active.storage.service=amazon`  
+5. config/storage.ymlを編集  
+
 ```yaml
    amazon:
     service: S3

@@ -88,7 +88,7 @@ curl -fsSL https://raw.githubusercontent.com/MasatoshiMizumoto/raisetech_documen
 
 データ作成   
 ![create](img/create.png)   
-データ削除
+データ削除  
 ![delete](img/delete.png)  
 
 ## Nginx（webサーバー）とunicorn(APサーバー)に分けてデプロイ  

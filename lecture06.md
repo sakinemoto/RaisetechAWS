@@ -56,6 +56,7 @@ AWS 利用料の見積を作成してください。
   - ELB
   - AWS CloudTrail
   - amazon CloudWatch
+  - S3
 
 ---
 マネジメントコンソールから、現在の利用料を確認して教えてください。  

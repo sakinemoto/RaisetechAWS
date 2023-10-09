@@ -46,7 +46,7 @@ AWS 利用料の見積を作成してください。
 できたものは URL を共有してください。  
 
 - URL  
-  [aws pricing calculator](https://calculator.aws/#/estimate?id=54ac4dd7aa268ded263dd0ba15d64081edb02dad)  
+  [aws pricing calculator](https://calculator.aws/#/estimate?id=09fb26d986e142dc00d7ebc890a2ee7cd5e478cb)  
 
 - 見積もり内容
 

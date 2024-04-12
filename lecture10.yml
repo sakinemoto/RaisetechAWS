@@ -9,10 +9,18 @@ Resources:
       CidrBlock: 10.0.0.0/16
       EnableDnsHostnames: true
       EnableDnsSupport: true
-      
+      Tags:
+           - Key: Name
+             Value: VPC-Lec10
+
   # インターネットゲートウェイ
   InternetGateway:
     Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+           - Key: Name
+             Value: IGW-Lec10
+
 
   # IGWをVPCにアタッチ
   AttachGateway:
@@ -29,6 +37,9 @@ Resources:
       CidrBlock: 10.0.1.0/24
       AvailabilityZone: ap-northeast-1a
       MapPublicIpOnLaunch: true
+      Tags:
+           - Value: Name
+             Key: Pub-subnet-1-Lec10
 
   # プライベートサブネット1
   PrivateSubnet1:
@@ -37,6 +48,9 @@ Resources:
       VpcId: !Ref MyVPC
       CidrBlock: 10.0.2.0/24
       AvailabilityZone: ap-northeast-1a
+      Tags:
+           - Value: Name
+             Key: Pvt-subnet-1-Lec10
 
   # パブリックサブネット2
   PublicSubnet2:
@@ -46,6 +60,9 @@ Resources:
       CidrBlock: 10.0.3.0/24
       AvailabilityZone: ap-northeast-1c
       MapPublicIpOnLaunch: true
+      Tags:
+           - Value: Name
+             Key: Pub-subnet-2-Lec10
 
   # プライベートサブネット2
   PrivateSubnet2:
@@ -54,6 +71,9 @@ Resources:
       VpcId: !Ref MyVPC
       CidrBlock: 10.0.4.0/24
       AvailabilityZone: ap-northeast-1c
+      Tags:
+           - Value: Name
+             Key: Pvt-subnet-2-Lec10
 
   # RDS用のカスタムサブネットグループ
   DBSubnetGroup:
@@ -79,6 +99,9 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+      Tags:
+           - Value: Name
+             Key: EC2-SG-Lec10
 
   # RDS用のセキュリティグループ
   RdsSecGroup:
@@ -91,22 +114,24 @@ Resources:
           FromPort: 3306
           ToPort: 3306
           SourceSecurityGroupId: !Ref EC2SecGroup
+      Tags:
+           - Value: Name
+             Key: RDS-EC2-SG-Lec10
 
   # ALB用のセキュリティグループ
   AlbSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow HTTP and HTTPS access to ALB
+      GroupDescription: Allow HTTP and access to ALB
       VpcId: !Ref MyVPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: 0.0.0.0/0
+      Tags:
+           - Value: Name
+             Key: ALB-SG-Lec10
 
 
   # パブリックサブネット1 のルートテーブル作成
@@ -114,6 +139,9 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref MyVPC
+      Tags:
+           - Key: Name
+             Value: RouteTable-PubSubnet1-Lec10
 
   # パブリックルートテ-ブルの設定
   PublicRoute:
@@ -136,6 +164,9 @@ Resources:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref MyVPC
+      Tags:
+           - Key: Name
+             Value: RouteTable-PvtSubnet1-Lec10
 
   # プライベートルートテーブルをプライベートサブネット1に紐づける
   PrivateRouteTableAssocName:
@@ -155,6 +186,7 @@ Resources:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
       Type: application
+      Name: ALB-Lec10
 
   # ALBのターゲットグループ
   MytargetGroup:
@@ -166,6 +198,7 @@ Resources:
       TargetType: instance
       UnhealthyThresholdCount: 2
       VpcId: !Ref MyVPC
+      Name: TargetGroup-Lec10
 
   # ALB リスナー設定
   MyALBListener:
@@ -196,6 +229,9 @@ Resources:
         - !Ref EC2SecGroup
       SubnetId: !Ref PublicSubnet1
       IamInstanceProfile: !Ref MyInstanceProfile
+      Tags:
+           - Value: Name
+             Key: EC2-Lec10
 
   #mySQLのRDB作成
   MyRdsDBInstance:
@@ -204,7 +240,7 @@ Resources:
       AllocatedStorage: 20
       DBInstanceClass: db.t3.micro
       AvailabilityZone: ap-northeast-1a
-      DBName: mydatabase
+      DBName: mydatabase-Lec10
       Engine: mysql
       EngineVersion: 8.0.35
       MasterUsername: raisetech_admin
@@ -219,17 +255,19 @@ Resources:
   Mys3Bucket:
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: mybucket-raisetech-lec10
+      BucketName: mybucket-raisetech-Lec10
 
   MyInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
+      InstanceProfileName: Lec10
       Roles:
         - !Ref MyRole
 
   MyRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: Lec10
       AssumeRolePolicyDocument: 
         Version: '2012-10-17'
         Statement:

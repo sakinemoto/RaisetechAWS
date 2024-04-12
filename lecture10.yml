@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Lecture10 Assignment
 
+Parameters:
+  DBPassword:
+    Type: String
+    Description: The database admin password
+    NoEcho: true
+
 Resources:
   # VPC
   MyVPC:
@@ -240,11 +246,11 @@ Resources:
       AllocatedStorage: 20
       DBInstanceClass: db.t3.micro
       AvailabilityZone: ap-northeast-1a
-      DBName: mydatabase-Lec10
+      DBName: mydatabase
       Engine: mysql
       EngineVersion: 8.0.35
       MasterUsername: raisetech_admin
-      MasterUserPassword: raisetech-lec10
+      MasterUserPassword: !Ref DBPassword
       Port: 3306 
       PubliclyAccessible: false
       StorageType: gp2
@@ -255,7 +261,7 @@ Resources:
   Mys3Bucket:
     Type: AWS::S3::Bucket
     Properties: 
-      BucketName: mybucket-raisetech-Lec10
+      BucketName: mybucket-raisetech-lec10
 
   MyInstanceProfile:
     Type: AWS::IAM::InstanceProfile

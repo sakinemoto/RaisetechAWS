@@ -17,16 +17,16 @@ Resources:
       EnableDnsHostnames: true
       EnableDnsSupport: true
       Tags:
-           - Key: Name
-             Value: VPC-Lec10
+        - Key: Name
+          Value: VPC-Lec10
 
   # インターネットゲートウェイ
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
-           - Key: Name
-             Value: IGW-Lec10
+        - Key: Name
+          Value: IGW-Lec10
 
 
   # IGWをVPCにアタッチ
@@ -45,8 +45,8 @@ Resources:
       AvailabilityZone: ap-northeast-1a
       MapPublicIpOnLaunch: true
       Tags:
-           - Value: Name
-             Key: Pub-subnet-1-Lec10
+        - Key: Name
+          Value: Pub-subnet-1-Lec10
 
   # プライベートサブネット1
   PrivateSubnet1:
@@ -56,8 +56,8 @@ Resources:
       CidrBlock: 10.0.2.0/24
       AvailabilityZone: ap-northeast-1a
       Tags:
-           - Value: Name
-             Key: Pvt-subnet-1-Lec10
+        - Key: Name
+          Value: Pvt-subnet-1-Lec10
 
   # パブリックサブネット2
   PublicSubnet2:
@@ -68,8 +68,8 @@ Resources:
       AvailabilityZone: ap-northeast-1c
       MapPublicIpOnLaunch: true
       Tags:
-           - Value: Name
-             Key: Pub-subnet-2-Lec10
+        - Key: Name
+          Value: Pub-subnet-2-Lec10
 
   # プライベートサブネット2
   PrivateSubnet2:
@@ -79,8 +79,8 @@ Resources:
       CidrBlock: 10.0.4.0/24
       AvailabilityZone: ap-northeast-1c
       Tags:
-           - Value: Name
-             Key: Pvt-subnet-2-Lec10
+        - Key: Name
+          Value: Pvt-subnet-2-Lec10
 
   # RDS用のカスタムサブネットグループ
   DBSubnetGroup:
@@ -107,8 +107,8 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
       Tags:
-           - Value: Name
-             Key: EC2-SG-Lec10
+        - Key: Name
+          Value: EC2-SG-Lec10
 
   # RDS用のセキュリティグループ
   RdsSecGroup:
@@ -122,8 +122,8 @@ Resources:
           ToPort: 3306
           SourceSecurityGroupId: !Ref EC2SecGroup
       Tags:
-           - Value: Name
-             Key: RDS-EC2-SG-Lec10
+        - Key: Name
+          Value: RDS-EC2-SG-Lec10
 
   # ALB用のセキュリティグループ
   AlbSecGroup:
@@ -137,8 +137,8 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
       Tags:
-           - Value: Name
-             Key: ALB-SG-Lec10
+        - Key: Name
+          Value: ALB-SG-Lec10
 
 
   # パブリックサブネット1 のルートテーブル作成
@@ -147,8 +147,8 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       Tags:
-           - Key: Name
-             Value: RouteTable-PubSubnet1-Lec10
+        - Key: Name
+          Value: RouteTable-PubSubnet1-Lec10
 
   # パブリックルートテ-ブルの設定
   PublicRoute:
@@ -172,8 +172,8 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       Tags:
-           - Key: Name
-             Value: RouteTable-PvtSubnet1-Lec10
+        - Key: Name
+          Value: RouteTable-PvtSubnet1-Lec10
 
   # プライベートルートテーブルをプライベートサブネット1に紐づける
   PrivateRouteTableAssocName:
@@ -237,8 +237,8 @@ Resources:
       SubnetId: !Ref PublicSubnet1
       IamInstanceProfile: !Ref MyInstanceProfile
       Tags:
-           - Value: Name
-             Key: EC2-Lec10
+        - Key: Name
+          Value: EC2-Lec10
 
   #mySQLのRDB作成
   MyRdsDBInstance:

@@ -169,6 +169,13 @@ Resources:
       SubnetId: !Ref MyPublicSubnet1
       RouteTableId: !Ref MyPublicRouteTable
 
+ # パブリックルートテーブルをパブリックサブネット2に紐付ける
+  PublicRouteAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref MyPublicSubnet2
+      RouteTableId: !Ref MyPublicRouteTable
+
   # プライベートサブネット１のルートテーブル作成
   MyPrivateRouteTable1:
     Type: AWS::EC2::RouteTable
@@ -179,10 +186,17 @@ Resources:
           Value: !Sub RouteTable-PvtSubnet1-${EnvironmentName}
 
   # プライベートルートテーブルをプライベートサブネット1に紐づける
-  PrivateRouteTableAssocation:
+  PrivateRouteTableAssocation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref MyPrivateSubnet1
+      RouteTableId: !Ref MyPrivateRouteTable1
+
+  # プライベートルートテーブルをプライベートサブネット2に紐づける
+  PrivateRouteTableAssocation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref MyPrivateSubnet2
       RouteTableId: !Ref MyPrivateRouteTable1
 
   # ALB
@@ -292,4 +306,4 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: s3:*
-                Resource: "arn:aws:s3:::mybucket-raisetech-lec10/*"
+                Resource: !GetAtt Mys3Bucket.Arn

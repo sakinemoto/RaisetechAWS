@@ -6,7 +6,10 @@ Parameters:
     Type: String
     Description: The database admin password
     NoEcho: true
-
+  EnvironmentName:
+    Type: String
+    Description: The environment name (e.g., Dev, Test, Prod)
+    Default: Lec10
     
 Resources:
   # VPC
@@ -18,15 +21,15 @@ Resources:
       EnableDnsSupport: true
       Tags:
         - Key: Name
-          Value: VPC-Lec10
+          Value: !Sub VPC-${EnvironmentName}
 
   # インターネットゲートウェイ
-  InternetGateway:
+  MyInternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: IGW-Lec10
+          Value: !Sub IGW-${EnvironmentName}
 
 
   # IGWをVPCにアタッチ
@@ -34,10 +37,10 @@ Resources:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref MyVPC
-      InternetGatewayId: !Ref InternetGateway
+      InternetGatewayId: !Ref MyInternetGateway
 
   # パブリックサブネット1
-  PublicSubnet1:
+  MyPublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
@@ -46,10 +49,10 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: Pub-subnet-1-Lec10
+          Value: !Sub Pub-subnet-1-${EnvironmentName}
 
   # プライベートサブネット1
-  PrivateSubnet1:
+  MyPrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
@@ -57,10 +60,10 @@ Resources:
       AvailabilityZone: ap-northeast-1a
       Tags:
         - Key: Name
-          Value: Pvt-subnet-1-Lec10
+          Value: !Sub Pvt-subnet-1-${EnvironmentName}
 
   # パブリックサブネット2
-  PublicSubnet2:
+  MyPublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
@@ -69,10 +72,10 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: Pub-subnet-2-Lec10
+          Value: !Sub Pub-subnet-2-${EnvironmentName}
 
   # プライベートサブネット2
-  PrivateSubnet2:
+  MyPrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
@@ -80,19 +83,19 @@ Resources:
       AvailabilityZone: ap-northeast-1c
       Tags:
         - Key: Name
-          Value: Pvt-subnet-2-Lec10
+          Value: !Sub Pvt-subnet-2-${EnvironmentName}
 
   # RDS用のカスタムサブネットグループ
-  DBSubnetGroup:
+  MyDBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: MyDB subnetGroup
       SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
+        - !Ref MyPrivateSubnet1
+        - !Ref MyPrivateSubnet2
 
   # EC2用のセキュリティグループ
-  EC2SecGroup:
+  MyEC2SecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow SSH and HTTP access to EC2
@@ -108,10 +111,10 @@ Resources:
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: EC2-SG-Lec10
+          Value: !Sub EC2-SG-${EnvironmentName}
 
   # RDS用のセキュリティグループ
-  RdsSecGroup:
+  MyRdsSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow MySQL to RDS from EC2
@@ -120,13 +123,13 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref EC2SecGroup
+          SourceSecurityGroupId: !Ref MyEC2SecGroup
       Tags:
         - Key: Name
-          Value: RDS-EC2-SG-Lec10
+          Value: !Sub RDS-EC2-SG-${EnvironmentName}
 
   # ALB用のセキュリティグループ
-  AlbSecGroup:
+  MyAlbSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow HTTP and access to ALB
@@ -138,49 +141,49 @@ Resources:
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: ALB-SG-Lec10
+          Value: !Sub ALB-SG-${EnvironmentName}
 
 
   # パブリックサブネット1 のルートテーブル作成
-  PublicRouteTable:
+  MyPublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref MyVPC
       Tags:
         - Key: Name
-          Value: RouteTable-PubSubnet1-Lec10
+          Value: !Sub RouteTable-PubSubnet1-${EnvironmentName}
 
   # パブリックルートテ-ブルの設定
-  PublicRoute:
+  MyPublicRoute:
     Type: AWS::EC2::Route
     DependsOn: AttachGateway
     Properties:
-      RouteTableId: !Ref PublicRouteTable
+      RouteTableId: !Ref MyPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
+      GatewayId: !Ref MyInternetGateway
 
   # パブリックルートテーブルをパブリックサブネット1に紐付ける
   PublicRouteAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PublicSubnet1
-      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref MyPublicSubnet1
+      RouteTableId: !Ref MyPublicRouteTable
 
   # プライベートサブネット１のルートテーブル作成
-  PrivateRouteTable1:
+  MyPrivateRouteTable1:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref MyVPC
       Tags:
         - Key: Name
-          Value: RouteTable-PvtSubnet1-Lec10
+          Value: !Sub RouteTable-PvtSubnet1-${EnvironmentName}
 
   # プライベートルートテーブルをプライベートサブネット1に紐づける
-  PrivateRouteTableAssocName:
+  PrivateRouteTableAssocation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PrivateSubnet1
-      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref MyPrivateSubnet1
+      RouteTableId: !Ref MyPrivateRouteTable1
 
   # ALB
   MyALB:
@@ -188,12 +191,12 @@ Resources:
     Properties:
       Scheme: internet-facing
       SecurityGroups: 
-        - !Ref AlbSecGroup
+        - !Ref MyAlbSecGroup
       Subnets: 
-        - !Ref PublicSubnet1
-        - !Ref PublicSubnet2
+        - !Ref MyPublicSubnet1
+        - !Ref MyPublicSubnet2
       Type: application
-      Name: ALB-Lec10
+      Name: !Sub ALB-${EnvironmentName}
 
   # ALBのターゲットグループ
   MytargetGroup:
@@ -205,7 +208,7 @@ Resources:
       TargetType: instance
       UnhealthyThresholdCount: 2
       VpcId: !Ref MyVPC
-      Name: TargetGroup-Lec10
+      Name: !Sub TargetGroup-${EnvironmentName}
 
   # ALB リスナー設定
   MyALBListener:
@@ -233,12 +236,12 @@ Resources:
       ImageId: ami-0df2ca8a354185e1e
       InstanceType: t2.micro
       SecurityGroupIds:
-        - !Ref EC2SecGroup
-      SubnetId: !Ref PublicSubnet1
+        - !Ref MyEC2SecGroup
+      SubnetId: !Ref MyPublicSubnet1
       IamInstanceProfile: !Ref MyInstanceProfile
       Tags:
         - Key: Name
-          Value: EC2-Lec10
+          Value: !Sub EC2-${EnvironmentName}
 
   #mySQLのRDB作成
   MyRdsDBInstance:
@@ -255,9 +258,9 @@ Resources:
       Port: 3306 
       PubliclyAccessible: false
       StorageType: gp2
-      DBSubnetGroupName: !Ref DBSubnetGroup
+      DBSubnetGroupName: !Ref MyDBSubnetGroup
       VPCSecurityGroups:
-        - !Ref RdsSecGroup
+        - !Ref MyRdsSecGroup
 
   Mys3Bucket:
     Type: AWS::S3::Bucket
@@ -267,14 +270,14 @@ Resources:
   MyInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
-      InstanceProfileName: Lec10
+      InstanceProfileName: !Sub ${EnvironmentName}
       Roles:
         - !Ref MyRole
 
   MyRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: Lec10
+      RoleName: !Sub ${EnvironmentName}
       AssumeRolePolicyDocument: 
         Version: '2012-10-17'
         Statement:
@@ -283,7 +286,7 @@ Resources:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: "EC2S3FullAccessToRaisetechLec10"
+        - PolicyName: !Sub EC2S3FullAccessToRaisetech${EnvironmentName}
           PolicyDocument:
             Version: "2012-10-17"
             Statement:

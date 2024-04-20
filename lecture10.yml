@@ -33,7 +33,7 @@ Resources:
 
 
   # IGWをVPCにアタッチ
-  AttachGateway:
+  MyAttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref MyVPC
@@ -156,21 +156,21 @@ Resources:
   # パブリックルートテ-ブルの設定
   MyPublicRoute:
     Type: AWS::EC2::Route
-    DependsOn: AttachGateway
+    DependsOn: MyAttachGateway
     Properties:
       RouteTableId: !Ref MyPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref MyInternetGateway
 
   # パブリックルートテーブルをパブリックサブネット1に紐付ける
-  PublicRouteAssociation:
+  MyPublicRouteAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref MyPublicSubnet1
       RouteTableId: !Ref MyPublicRouteTable
 
  # パブリックルートテーブルをパブリックサブネット2に紐付ける
-  PublicRouteAssociation2:
+  MyPublicRouteAssociation2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref MyPublicSubnet2
@@ -186,14 +186,14 @@ Resources:
           Value: !Sub RouteTable-PvtSubnet1-${EnvironmentName}
 
   # プライベートルートテーブルをプライベートサブネット1に紐づける
-  PrivateRouteTableAssocation1:
+  MyPrivateRouteTableAssocation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref MyPrivateSubnet1
       RouteTableId: !Ref MyPrivateRouteTable1
 
   # プライベートルートテーブルをプライベートサブネット2に紐づける
-  PrivateRouteTableAssocation2:
+  MyPrivateRouteTableAssocation2:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref MyPrivateSubnet2
@@ -306,4 +306,4 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: s3:*
-                Resource: !GetAtt Mys3Bucket.Arn
+                Resource: !Sub arn:aws:s3:::${Mys3Bucket}/*

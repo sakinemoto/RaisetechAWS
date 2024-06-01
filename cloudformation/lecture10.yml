@@ -45,7 +45,7 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       CidrBlock: 10.0.1.0/24
-      AvailabilityZone: ap-northeast-1a
+      AvailabilityZone: !Select [ 0, !GetAZs ]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -57,7 +57,7 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       CidrBlock: 10.0.2.0/24
-      AvailabilityZone: ap-northeast-1a
+      AvailabilityZone: !Select [ 0, !GetAZs ]
       Tags:
         - Key: Name
           Value: !Sub Pvt-subnet-1-${EnvironmentName}
@@ -68,7 +68,7 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       CidrBlock: 10.0.3.0/24
-      AvailabilityZone: ap-northeast-1c
+      AvailabilityZone: !Select [ 0, !GetAZs ]
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -80,7 +80,7 @@ Resources:
     Properties:
       VpcId: !Ref MyVPC
       CidrBlock: 10.0.4.0/24
-      AvailabilityZone: ap-northeast-1c
+      AvailabilityZone: !Select [ 0, !GetAZs ]
       Tags:
         - Key: Name
           Value: !Sub Pvt-subnet-2-${EnvironmentName}
@@ -263,7 +263,7 @@ Resources:
     Properties:
       AllocatedStorage: 20
       DBInstanceClass: db.t3.micro
-      AvailabilityZone: ap-northeast-1a
+      AvailabilityZone: !Select [ 0, !GetAZs ]
       DBName: mydatabase
       Engine: mysql
       EngineVersion: 8.0.35

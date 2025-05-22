@@ -1,8 +1,11 @@
 # 第13回課題  
 
-## CircleCI のサンプルに ServerSpec や Ansible の処理を追加  
+## 課題内容
 
-## CircleCIにcloudformation・ansible・serverspecの設定を追加  
+CircleCI のサンプルに ServerSpec や Ansible の処理を追加  
+
+【事前設定】  
+CircleCIにcloudformation・ansible・serverspecの設定を追加  
   
 - CirclecCI環境変数を設定
   - プロジェクト設定の「Environment Variables」を追加
@@ -13,21 +16,25 @@
     - ENVIRONMENT_NAME
     - PRIVATE_KEY
   
-## CircleCIの実行  
+---
 
-#### CloudFormationのテンプレートを使ってスタックを作成  
+### 各リソース
+
+#### CircleCI
+
+CloudFormationのテンプレートを使ってスタックを作成  
 
 - CircleCIのconfig.ymlにCloudFormationのテンプレートを実行する処理を追加
 - 実行結果  
   ![cloudformation](img/cloudformation.png)
 
-#### Ansible　playbookの実行  
+#### Ansible
 
 - CircleCIのconfig.ymlにAnsibleのplaybookを実行する処理を追加  
--実行結果  
+- 実行結果  
 ![ansible](img/ansible.png)
 
-#### Serverspecによるテスト実行  
+#### Serverspec
 
 - CircleCIのconfig.ymlにSeverspecのテスト実行する処理を追加  
 - 実行結果  
@@ -35,7 +42,7 @@
 
 ---
 
-#### CircleCI実行結果  
+CircleCI実行結果  
 
 ![circleci](img/circleci.png)
 

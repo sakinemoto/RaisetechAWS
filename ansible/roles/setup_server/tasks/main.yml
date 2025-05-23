@@ -1,0 +1,57 @@
+---
+# roles/rails/setup_server/main.yml
+
+- name: Change directory to the application root
+  ansible.builtin.shell: cd {{ app_path }}
+  args:
+    chdir: "{{ app_path }}"
+
+- name: Precompile assets
+  ansible.builtin.shell: |
+    source ~/.bash_profile
+    eval "$(rbenv init -)"
+    rake assets:precompile
+  args:
+    chdir: "{{ app_path }}"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+  become: true
+  become_user: ec2-user
+
+- name: Ensure rbenv and bundler are installed
+  ansible.builtin.shell: |
+    source ~/.bash_profile
+    eval "$(rbenv init -)"
+    if ! command -v bundle &> /dev/null; then
+      gem install bundler -v 2.3.14
+    fi
+  become: true
+  become_user: ec2-user
+
+- name: Remove existing Rails server PID file
+  ansible.builtin.file:
+    path: "{{ app_path }}/tmp/pids/server.pid"
+    state: absent
+  become: true
+  become_user: ec2-user
+
+- name: Start Rails server
+  ansible.builtin.shell: |
+    source ~/.bash_profile
+    eval "$(rbenv init -)"
+    bundle exec rails s -b 0.0.0.0
+  args:
+    chdir: "{{ app_path }}"  # Rails アプリケーションのディレクトリ
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+  become: true
+  become_user: ec2-user
+
+- name: Wait for Rails server to start
+  ansible.builtin.wait_for:
+    path: /tmp/rails_server_started
+    state: present
+    delay: 10
+    timeout: 300

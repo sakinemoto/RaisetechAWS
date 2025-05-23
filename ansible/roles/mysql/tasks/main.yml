@@ -1,0 +1,65 @@
+---
+# roles/mysql/tasks/main.yml
+
+- name: Update yum
+  ansible.builtin.shell: "sudo yum -y update"
+
+- name: Remove Mysqlserver if installed
+  ansible.builtin.shell: "sudo yum remove -y mysql-server"
+
+- name: Remove MariaDB if installed
+  ansible.builtin.shell: "sudo yum remove -y mariadb*"
+
+- name: Import GPG keys
+  ansible.builtin.shell: |
+    sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+
+
+- name: Ensure MySQL repository is installed
+  ansible.builtin.shell: |
+    if ! sudo yum repolist | grep -q mysql80-community; then
+      sudo yum localinstall -y https://dev.mysql.com/get/mysql80-community-release-el7-7.noarch.rpm
+    fi
+
+- name: Install MySQL community server and tools
+  ansible.builtin.shell: |
+    sudo yum install -y mysql-community-server mysql-community-devel
+
+- name: Remove downloaded MySQL repository package (if any)
+  ansible.builtin.file:
+    path: /tmp/mysql.rpm
+    state: absent
+
+- name: Create MySQL socket directory
+  ansible.builtin.file:
+    path: "{{ app_path }}/tmp/sockets"
+    state: directory
+    owner: ec2-user
+    group: ec2-user
+    mode: '0755'
+  become: true
+
+- name: Start MySQL server
+  ansible.builtin.shell: "sudo service mysqld start"
+
+- name: Enable MySQL server to start on boot
+  ansible.builtin.shell: "sudo systemctl enable mysqld"
+
+- name: Check MySQL server status
+  ansible.builtin.shell: "sudo service mysqld status"
+  register: mysql_status
+
+- name: Print MySQL server status
+  ansible.builtin.debug:
+    var: mysql_status.stdout_lines
+
+- name: Debug DB_USER from environment
+  ansible.builtin.debug:
+    msg: "DB_USER: {{ lookup('env', 'DB_USER') }}"
+
+- name: Create database.yml
+  ansible.builtin.template:
+    src: database.yml.j2
+    dest: "{{ app_path }}/config/database.yml"
+  become: true
+

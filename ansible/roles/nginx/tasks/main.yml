@@ -1,0 +1,81 @@
+---
+# roles/nginx/tasks/main.yml
+
+- name: Install Nginx
+  ansible.builtin.shell:
+    cmd: amazon-linux-extras install nginx1 -y
+  become: true
+
+- name: Ensure nginx group exists
+  ansible.builtin.group:
+    name: nginx
+    state: present
+  become: true
+
+- name: Ensure sockets directory exists and has correct permissions
+  ansible.builtin.file:
+    path: /home/ec2-user/raisetech-live8-sample-app/tmp/sockets
+    state: directory
+    owner: ec2-user
+    group: nginx
+    mode: '0770'
+  become: true
+
+- name: Check if Puma socket exists
+  ansible.builtin.stat:
+    path: /home/ec2-user/raisetech-live8-sample-app/tmp/sockets/puma.sock
+  register: puma_socket_stat
+
+- name: Set permissions for Puma socket if it exists
+  ansible.builtin.file:
+    path: /home/ec2-user/raisetech-live8-sample-app/tmp/sockets/puma.sock
+    owner: ec2-user
+    group: nginx
+    mode: '0770'
+  when: puma_socket_stat.stat.exists
+  become: true
+
+- name: Ensure Nginx temporary directory exists and has correct permissions
+  ansible.builtin.file:
+    path: /var/lib/nginx/tmp/client_body
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0700'
+  become: true
+  
+- name: deploy application.rb
+  ansible.builtin.template:
+    src: templates/application.rb.j2
+    dest: "{{ app_path }}/config/application.rb"
+
+- name: Copy nginx general configuration file
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Test Nginx configuration
+  ansible.builtin.command: nginx -t
+  register: nginx_test
+  ignore_errors: true
+
+- name: Reload Nginx after updating configuration
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+  become: true
+  when: nginx_test.rc == 0
+
+- name: Enable Nginx to start on boot
+  ansible.builtin.service:
+    name: nginx
+    enabled: yes
+  become: true
+
+- name: Restart Puma
+  command: >
+    systemctl restart puma

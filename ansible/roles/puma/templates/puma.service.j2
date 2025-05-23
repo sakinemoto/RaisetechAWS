@@ -1,0 +1,13 @@
+[Unit]
+Description=Puma HTTP Server
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory={{ app_path }}
+ExecStart={{ rbenv_root }}/shims/bundle exec puma -C {{ app_path }}/config/puma.rb
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

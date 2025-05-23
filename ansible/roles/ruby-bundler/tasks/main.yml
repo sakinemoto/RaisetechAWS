@@ -1,0 +1,110 @@
+---
+# roles/ruby-bundler/tasks/main.yml
+- name: Display environment variables
+  ansible.builtin.command: env
+  register: env_output
+
+- debug:
+    msg: "{{ env_output.stdout_lines | select('search', 'DB_') }}"
+
+
+- name: Update all packages to the latest version
+  ansible.builtin.shell: "sudo yum update -y"
+  become: true
+
+- name: Ensure pip is installed (Amazon Linux 2)
+  yum:
+     name: python3-pip
+     state: present
+
+- name: Install boto3 via pip
+  pip:
+    name:
+      - boto3
+      - botocore
+    executable: pip3
+
+- name: Install dependencies
+  ansible.builtin.shell: "sudo yum install -y {{ item }}"
+  loop:
+    - gcc
+    - openssl-devel
+    - libyaml-devel
+    - libffi-devel
+    - readline-devel
+    - zlib-devel
+    - gdbm-devel
+    - ncurses-devel
+  become: true
+
+- name: Check if rbenv is installed
+  stat:
+    path: "{{ rbenv_root }}"
+  register: rbenv_installed
+
+- name: Clone rbenv repository
+  ansible.builtin.shell: "git clone https://github.com/rbenv/rbenv.git {{ rbenv_root }}"
+  when: not rbenv_installed.stat.exists
+  become: true
+  become_user: ec2-user
+
+- name: Set rbenv environment variables
+  ansible.builtin.shell: |
+    echo 'export RBENV_ROOT={{ rbenv_root }}' >> /home/ec2-user/.bash_profile
+    echo 'export PATH=$RBENV_ROOT/bin:$PATH' >> /home/ec2-user/.bash_profile
+    echo 'eval "$(rbenv init -)"' >> /home/ec2-user/.bash_profile
+  when: not rbenv_installed.stat.exists
+  become: true
+  become_user: ec2-user
+
+- name: Source bash profile
+  ansible.builtin.shell: "source /home/ec2-user/.bash_profile"
+  when: not rbenv_installed.stat.exists
+  become: true
+  become_user: ec2-user
+
+- name: Clone ruby-build repository
+  ansible.builtin.shell: "git clone https://github.com/rbenv/ruby-build.git {{ rbenv_root }}/plugins/ruby-build"
+  when: not rbenv_installed.stat.exists
+  become: true
+  become_user: ec2-user
+
+- name: Install Ruby {{ ruby_version }}
+  ansible.builtin.shell: "{{ rbenv_root }}/bin/rbenv install {{ ruby_version }}"
+  args:
+    creates: "{{ rbenv_root }}/versions/{{ ruby_version }}"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+  become: true
+  become_user: ec2-user
+
+- name: Set Ruby {{ ruby_version }} as global version
+  ansible.builtin.shell: "{{ rbenv_root }}/bin/rbenv global {{ ruby_version }}"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+  become: true
+  become_user: ec2-user
+
+- name: Rehash rbenv shims
+  ansible.builtin.shell: "{{ rbenv_root }}/bin/rbenv rehash"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+  become: true
+  become_user: ec2-user
+
+- name: Install Development Tools
+  ansible.builtin.shell: "sudo yum groupinstall -y 'Development Tools'"
+  become: true
+
+- name: Install bundler
+  ansible.builtin.shell: |
+    source /home/ec2-user/.bash_profile
+    gem install bundler -v {{ bundler_version }}
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+  become: true
+  become_user: ec2-user

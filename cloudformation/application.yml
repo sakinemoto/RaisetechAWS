@@ -1,0 +1,169 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Lecture13 Application Resources
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: The environment name (e.g., Dev, Test, Prod)
+    Default: Lec13  
+  DBUser:
+    Type: String
+    Default: raisetech_admin
+    Description: The database admin username
+  DBPassword:
+    Type: String
+    Description: The database admin password
+    NoEcho: true
+
+Resources:
+  MyALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DeletionPolicy: Delete
+    Properties:
+      Scheme: internet-facing
+      SecurityGroups:
+        - !ImportValue
+          'Fn::Sub': '${EnvironmentName}-MyAlbSecGroupId'
+      Subnets:
+        - !ImportValue
+          'Fn::Sub': '${EnvironmentName}-PublicSubnet1Id'
+        - !ImportValue
+          'Fn::Sub': '${EnvironmentName}-PublicSubnet2Id'
+      Type: application
+      Name: !Sub ALB-${EnvironmentName}
+      Tags:
+        - Key: Name
+          Value: lec13
+
+  MytargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DeletionPolicy: Delete
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      ProtocolVersion: HTTP1
+      TargetType: instance
+      Targets: 
+           - Id: !Ref MyEC2Instance
+      UnhealthyThresholdCount: 2
+      VpcId: !ImportValue
+        'Fn::Sub': '${EnvironmentName}-VPCId'
+      Name: !Sub TargetGroup-${EnvironmentName}
+      Tags:
+        - Key: Name
+          Value: lec13
+
+  MyALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DeletionPolicy: Delete
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref MytargetGroup
+      LoadBalancerArn: !Ref MyALB
+      Port: 80
+      Protocol: HTTP
+
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    DeletionPolicy: Delete
+    Properties:
+      KeyName: MyKeyPair02
+      ImageId: ami-0df2ca8a354185e1e
+      InstanceType: t2.micro
+      SecurityGroupIds:
+        - !ImportValue
+          'Fn::Sub': '${EnvironmentName}-MyEC2SecGroupId'
+      SubnetId: !ImportValue
+        'Fn::Sub': '${EnvironmentName}-PublicSubnet1Id'
+      IamInstanceProfile: !Ref MyInstanceProfile
+      Tags:
+        - Key: Name
+          Value: lec13
+
+  MyRdsDBInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      AllocatedStorage: 20
+      DBInstanceClass: db.t3.micro
+      AvailabilityZone: !Select [ 0, !GetAZs ]
+      DBName: raisetech_live8_sample_app_development
+      Engine: mysql
+      EngineVersion: 8.0.35
+      MasterUsername: !Ref DBUser  # パラメータを参照
+      MasterUserPassword: !Ref DBPassword  # パラメータを参照
+      Port: 3306
+      PubliclyAccessible: false
+      StorageType: gp2
+      DBSubnetGroupName: !ImportValue
+        'Fn::Sub': '${EnvironmentName}-MyDBSubnetGroupId'
+      VPCSecurityGroups:
+        - !ImportValue
+          'Fn::Sub': '${EnvironmentName}-MyRdsSecGroupId'
+      Tags:
+        - Key: Name
+          Value: lec13
+
+  Mys3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: mybucket-raisetech-lec13
+      Tags:
+        - Key: Name
+          Value: lec13
+
+  MyInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DeletionPolicy: Delete
+    Properties:
+      InstanceProfileName: !Sub ${EnvironmentName}
+      Roles:
+        - !Ref MyRole
+
+  MyRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Delete
+    Properties:
+      RoleName: !Sub ${EnvironmentName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub EC2S3FullAccessToRaisetech${EnvironmentName}
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: s3:*
+                Resource:
+                  - !Sub arn:aws:s3:::mybucket-raisetech-lec13/*
+                  - !Sub arn:aws:s3:::mybucket-raisetech-lec13
+      Tags:
+        - Key: Name
+          Value: lec13
+
+Outputs:
+  EC2publicIP:
+    Description: "AWS EC2 Public IP"
+    Value: !GetAtt MyEC2Instance.PublicIp
+  DBUser:
+    Description: "The database user"
+    Value: !Ref DBUser
+  DBPassword:
+    Description: "The database password"
+    Value: !Ref DBPassword
+  DBhost:
+    Description: "The database host"
+    Value: !GetAtt MyRdsDBInstance.Endpoint.Address
+  ALBendpoint:
+    Description: "The ALB DNS name"
+    Value: !GetAtt MyALB.DNSName
+  S3bucketName:
+    Description: "The S3bucket name"
+    Value: !Ref Mys3Bucket

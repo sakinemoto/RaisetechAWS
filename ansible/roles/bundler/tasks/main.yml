@@ -1,0 +1,10 @@
+---
+# roles/bundler/tasks/main.yml
+
+- name: Install Development Tools
+  ansible.builtin.shell: "sudo yum groupinstall -y 'Development Tools'"
+  become: true
+
+- name: install bundler
+  ansible.builtin.command:
+    cmd: bash -lc "gem install bundler -v {{ bundler_version }}"

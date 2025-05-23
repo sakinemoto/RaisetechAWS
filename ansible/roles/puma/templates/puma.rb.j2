@@ -1,0 +1,23 @@
+# config/puma.rb
+
+# ポート設定
+# port ENV.fetch("PORT") { 3000 }
+
+# スレッド数
+threads_count = ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i
+threads threads_count, threads_count
+
+
+# PumaのPIDと状態ファイル
+directory '/home/ec2-user/raisetech-live8-sample-app'
+pidfile "{{ app_path }}/tmp/pids/puma.pid"
+state_path "{{ app_path }}/tmp/pids/puma.state"
+
+
+# ログ出力設定
+stdout_redirect '{{ app_path }}/log/puma.stdout.log', '{{ app_path }}/log/puma.stderr.log', true
+
+# Unixソケット設定
+bind 'unix://{{ app_path }}/tmp/sockets/puma.sock'
+
+activate_control_app

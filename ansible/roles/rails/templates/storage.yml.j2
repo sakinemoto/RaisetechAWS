@@ -1,0 +1,10 @@
+# templates/storage.yml.j2
+
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+
+amazon:
+  service: S3
+  region: 'ap-northeast-1'
+  bucket: 'mybucket-raisetech-lec13'

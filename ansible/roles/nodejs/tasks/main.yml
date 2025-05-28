@@ -5,5 +5,6 @@
   ansible.builtin.shell: curl -sL https://rpm.nodesource.com/setup_16.x | bash -
 
 - name: Install Node.js
-  ansible.builtin.shell: "sudo yum install -y nodejs"
+  ansible.builtin.command: yum install -y nodejs
+  become: true
 

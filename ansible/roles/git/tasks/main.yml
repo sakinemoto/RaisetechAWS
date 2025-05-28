@@ -1,28 +1,16 @@
 ---
 # roles/git/tasks/main.yml
 
-- name: Display DB environment variables
-  ansible.builtin.debug:
-    msg: 
-      - "DB_USER: {{ db_user }}"
-      - "DB_PASSWORD: {{ db_password }}"
-      - "DB_HOST: {{ db_host }}"
-      - "ALB_HOST: {{ alb_dns }}"
-
-
-- name: Install Git using command
-  ansible.builtin.command:
-    cmd: sudo yum install -y git
+- name: Install Git using yum module
+  ansible.builtin.yum:
+    name: git
+    state: present
   register: git_install_result
 
-- name: Remove existing repository
-  ansible.builtin.file:
-    path: /home/ec2-user/raisetech-live8-sample-app
-    state: absent
-
-- name: Clone repository
+- name: Clone repository with force overwrite
   ansible.builtin.git:
     repo: 'https://github.com/yuta-ushijima/raisetech-live8-sample-app.git'
     dest: /home/ec2-user/raisetech-live8-sample-app
+    force: true
   become: true
   become_user: ec2-user

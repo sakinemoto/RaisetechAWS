@@ -2,8 +2,7 @@
 # roles/nginx/tasks/main.yml
 
 - name: Install Nginx
-  ansible.builtin.shell:
-    cmd: amazon-linux-extras install nginx1 -y
+  ansible.builtin.command: amazon-linux-extras install nginx1 -y
   become: true
 
 - name: Ensure nginx group exists

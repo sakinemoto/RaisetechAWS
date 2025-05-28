@@ -36,8 +36,7 @@
   command: swapon /swapfile
 
 - name: Run bundle install with extended timeout
-  ansible.builtin.shell: |
-    bundle install
+  ansible.builtin.command: bundle install
   args:
     chdir: "{{ app_path }}"
   environment:
@@ -45,7 +44,7 @@
     PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
   become: true
   become_user: ec2-user
-  async: 1800  # 最大30分
+
 
 - name: Create and migrate database
   ansible.builtin.shell: |

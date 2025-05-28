@@ -9,7 +9,7 @@
 
 
 - name: Update all packages to the latest version
-  ansible.builtin.shell: "sudo yum update -y"
+  ansible.builtin.command: yum update -y
   become: true
 
 - name: Ensure pip is installed (Amazon Linux 2)
@@ -24,8 +24,14 @@
       - botocore
     executable: pip3
 
+- name: Install Development Tools
+  ansible.builtin.yum:
+    name: "@Development Tools"
+    state: present
+  become: true
+
 - name: Install dependencies
-  ansible.builtin.shell: "sudo yum install -y {{ item }}"
+  ansible.builtin.command: yum install -y {{ item }}
   loop:
     - gcc
     - openssl-devel
@@ -70,7 +76,7 @@
   become_user: ec2-user
 
 - name: Install Ruby {{ ruby_version }}
-  ansible.builtin.shell: "{{ rbenv_root }}/bin/rbenv install {{ ruby_version }}"
+  ansible.builtin.command: "{{ rbenv_root }}/bin/rbenv install {{ ruby_version }}"
   args:
     creates: "{{ rbenv_root }}/versions/{{ ruby_version }}"
   environment:
@@ -80,7 +86,7 @@
   become_user: ec2-user
 
 - name: Set Ruby {{ ruby_version }} as global version
-  ansible.builtin.shell: "{{ rbenv_root }}/bin/rbenv global {{ ruby_version }}"
+  ansible.builtin.command: "{{ rbenv_root }}/bin/rbenv global {{ ruby_version }}"
   environment:
     RBENV_ROOT: "{{ rbenv_root }}"
     PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
@@ -88,21 +94,19 @@
   become_user: ec2-user
 
 - name: Rehash rbenv shims
-  ansible.builtin.shell: "{{ rbenv_root }}/bin/rbenv rehash"
+  ansible.builtin.command: "{{ rbenv_root }}/bin/rbenv rehash"
   environment:
     RBENV_ROOT: "{{ rbenv_root }}"
     PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
   become: true
   become_user: ec2-user
 
-- name: Install Development Tools
-  ansible.builtin.shell: "sudo yum groupinstall -y 'Development Tools'"
-  become: true
+# - name: Install Development Tools
+#   ansible.builtin.shell: "sudo yum groupinstall -y 'Development Tools'"
+#   become: true
 
 - name: Install bundler
-  ansible.builtin.shell: |
-    source /home/ec2-user/.bash_profile
-    gem install bundler -v {{ bundler_version }}
+  ansible.builtin.command: gem install bundler -v {{ bundler_version }}
   environment:
     RBENV_ROOT: "{{ rbenv_root }}"
     PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"

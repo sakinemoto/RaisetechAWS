@@ -1,29 +1,55 @@
 ---
 # roles/mysql/tasks/main.yml
 
-- name: Update yum
-  ansible.builtin.shell: "sudo yum -y update"
+- name: Update all packages
+  ansible.builtin.yum:
+    name: '*'
+    state: latest
+  become: true
 
 - name: Remove Mysqlserver if installed
-  ansible.builtin.shell: "sudo yum remove -y mysql-server"
+  ansible.builtin.yum:
+    name: mysql-server
+    state: absent
+  become: true
 
-- name: Remove MariaDB if installed
-  ansible.builtin.shell: "sudo yum remove -y mariadb*"
+- name: Remove MariaDB packages if installed
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - mariadb-libs
+    - mariadb-server
+    - mariadb
+  ignore_errors: true  # 存在しないパッケージでエラーを防ぐ
+  become: true
 
 - name: Import GPG keys
-  ansible.builtin.shell: |
-    sudo rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+  ansible.builtin.rpm_key:
+    state: present
+    key: https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+  become: true
 
 
-- name: Ensure MySQL repository is installed
-  ansible.builtin.shell: |
-    if ! sudo yum repolist | grep -q mysql80-community; then
-      sudo yum localinstall -y https://dev.mysql.com/get/mysql80-community-release-el7-7.noarch.rpm
-    fi
+- name: Install MySQL repository RPM
+  ansible.builtin.get_url:
+    url: https://repo.mysql.com/mysql80-community-release-el7-7.noarch.rpm
+    dest: /tmp/mysql80-community-release-el7-7.noarch.rpm
+  become: true
 
-- name: Install MySQL community server and tools
-  ansible.builtin.shell: |
-    sudo yum install -y mysql-community-server mysql-community-devel
+- name: Install the MySQL repo rpm
+  ansible.builtin.yum:
+    name: /tmp/mysql80-community-release-el7-7.noarch.rpm
+    state: present
+  become: true
+  
+- name: Install MySQL packages
+  ansible.builtin.yum:
+    name:
+      - mysql-community-server
+      - mysql-community-devel
+    state: present
+  become: true
 
 - name: Remove downloaded MySQL repository package (if any)
   ansible.builtin.file:
@@ -40,14 +66,21 @@
   become: true
 
 - name: Start MySQL server
-  ansible.builtin.shell: "sudo service mysqld start"
+  ansible.builtin.service:
+    name: mysqld
+    state: started
+  become: true
 
 - name: Enable MySQL server to start on boot
-  ansible.builtin.shell: "sudo systemctl enable mysqld"
+  ansible.builtin.service:
+    name: mysqld
+    enabled: true
+  become: true
 
 - name: Check MySQL server status
-  ansible.builtin.shell: "sudo service mysqld status"
+  ansible.builtin.command: service mysqld status
   register: mysql_status
+  become: true
 
 - name: Print MySQL server status
   ansible.builtin.debug:

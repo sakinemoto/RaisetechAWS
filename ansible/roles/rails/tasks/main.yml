@@ -7,16 +7,12 @@
   environment:
     RBENV_ROOT: "{{ rbenv_root }}"
     PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
-  become: true
-  become_user: ec2-user
 
 - name: Configure Rails development environment
   ansible.builtin.template:
     src: development.rb.j2
     dest: "{{ app_path }}/config/environments/development.rb"
-  become: true
-  become_user: ec2-user
-
+    
 # ImageMagickのインストール
 - name: Install ImageMagick package
   ansible.builtin.yum:

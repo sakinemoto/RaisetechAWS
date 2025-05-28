@@ -12,5 +12,4 @@
     repo: 'https://github.com/yuta-ushijima/raisetech-live8-sample-app.git'
     dest: /home/ec2-user/raisetech-live8-sample-app
     force: true
-  become: true
-  become_user: ec2-user
+    

@@ -95,4 +95,3 @@
     src: database.yml.j2
     dest: "{{ app_path }}/config/database.yml"
   become: true
-

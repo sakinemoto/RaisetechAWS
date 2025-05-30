@@ -7,12 +7,6 @@
     state: latest
   become: true
 
-- name: Remove Mysqlserver if installed
-  ansible.builtin.yum:
-    name: mysql-server
-    state: absent
-  become: true
-
 - name: Remove MariaDB packages if installed
   ansible.builtin.yum:
     name: "{{ item }}"
@@ -21,7 +15,7 @@
     - mariadb-libs
     - mariadb-server
     - mariadb
-  ignore_errors: true  # 存在しないパッケージでエラーを防ぐ
+  ignore_errors: true
   become: true
 
 - name: Import GPG keys
@@ -29,7 +23,6 @@
     state: present
     key: https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
   become: true
-
 
 - name: Install MySQL repository RPM
   ansible.builtin.get_url:
@@ -42,49 +35,20 @@
     name: /tmp/mysql80-community-release-el7-7.noarch.rpm
     state: present
   become: true
-  
-- name: Install MySQL packages
+
+- name: Install MySQL client packages only
   ansible.builtin.yum:
     name:
-      - mysql-community-server
+      - mysql
       - mysql-community-devel
     state: present
   become: true
 
 - name: Remove downloaded MySQL repository package (if any)
   ansible.builtin.file:
-    path: /tmp/mysql.rpm
+    path: /tmp/mysql80-community-release-el7-7.noarch.rpm
     state: absent
-
-- name: Create MySQL socket directory
-  ansible.builtin.file:
-    path: "{{ app_path }}/tmp/sockets"
-    state: directory
-    owner: ec2-user
-    group: ec2-user
-    mode: '0755'
   become: true
-
-- name: Start MySQL server
-  ansible.builtin.service:
-    name: mysqld
-    state: started
-  become: true
-
-- name: Enable MySQL server to start on boot
-  ansible.builtin.service:
-    name: mysqld
-    enabled: true
-  become: true
-
-- name: Check MySQL server status
-  ansible.builtin.command: service mysqld status
-  register: mysql_status
-  become: true
-
-- name: Print MySQL server status
-  ansible.builtin.debug:
-    var: mysql_status.stdout_lines
 
 - name: Debug DB_USER from environment
   ansible.builtin.debug:

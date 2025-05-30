@@ -40,22 +40,28 @@
   register: rbenv_installed
 
 - name: Clone rbenv repository
-  ansible.builtin.shell: "git clone https://github.com/rbenv/rbenv.git {{ rbenv_root }}"
+  ansible.builtin.git:
+    repo: https://github.com/rbenv/rbenv.git
+    dest: "{{ rbenv_root }}"
+    version: master
   when: not rbenv_installed.stat.exists
 
-- name: Set rbenv environment variables
-  ansible.builtin.shell: |
-    echo 'export RBENV_ROOT={{ rbenv_root }}' >> /home/ec2-user/.bash_profile
-    echo 'export PATH=$RBENV_ROOT/bin:$PATH' >> /home/ec2-user/.bash_profile
-    echo 'eval "$(rbenv init -)"' >> /home/ec2-user/.bash_profile
-  when: not rbenv_installed.stat.exists
-
-- name: Source bash profile
-  ansible.builtin.shell: "source /home/ec2-user/.bash_profile"
+- name: Ensure rbenv environment variables are in .bash_profile
+  ansible.builtin.lineinfile:
+    path: /home/ec2-user/.bash_profile
+    line: "{{ item }}"
+    insertafter: EOF
+  loop:
+    - 'export RBENV_ROOT={{ rbenv_root }}'
+    - 'export PATH=$RBENV_ROOT/bin:$PATH'
+    - 'eval "$(rbenv init -)"'
   when: not rbenv_installed.stat.exists
 
 - name: Clone ruby-build repository
-  ansible.builtin.shell: "git clone https://github.com/rbenv/ruby-build.git {{ rbenv_root }}/plugins/ruby-build"
+  ansible.builtin.git:
+    repo: https://github.com/rbenv/ruby-build.git
+    dest: "{{ rbenv_root }}/plugins/ruby-build"
+    version: master
   when: not rbenv_installed.stat.exists
 
 - name: Install Ruby {{ ruby_version }}

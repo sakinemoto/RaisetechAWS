@@ -1,0 +1,28 @@
+---
+# roles/rails/tasks/main.yml
+
+- name: Install Rails
+  ansible.builtin.shell: >
+    bash -lc 'eval "$(rbenv init -)"; gem install rails'
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+
+- name: Configure Rails development environment
+  ansible.builtin.template:
+    src: development.rb.j2
+    dest: "{{ app_path }}/config/environments/development.rb"
+    
+# ImageMagickのインストール
+- name: Install ImageMagick package
+  ansible.builtin.yum:
+    name:
+      - ImageMagick
+      - ImageMagick-devel
+    state: present
+
+- name: Create storage.yml
+  ansible.builtin.template:
+    src: storage.yml.j2
+    dest: "{{ app_path }}/config/storage.yml"
+  become: true

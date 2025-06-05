@@ -1,0 +1,12 @@
+plugin: aws_ec2  # EC2インベントリプラグイン
+regions:
+  - ap-northeast-1  # 使用しているAWSリージョンを指定（例: 東京リージョン）
+filters:
+  instance-state-name: running  # 実行中のインスタンスのみを対象
+  tag:Name: lec13  # インスタンスに設定したタグを指定（例: Nameタグに"lec13"がついたインスタンス）
+
+hostnames:
+  - tag:Name  # インスタンスの名前をホスト名として使用
+
+compose:
+  ansible_host: public_ip_address  # ansible_host にインスタンスのパブリックIPアドレスを指定

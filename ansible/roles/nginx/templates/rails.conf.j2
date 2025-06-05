@@ -1,0 +1,73 @@
+# rails.conf.j2
+
+upstream app_server {
+    server unix:/home/ec2-user/raisetech-live8-sample-app/tmp/sockets/puma.sock;  # Pumaのソケットファイルのパス
+}
+    server {
+        listen 80;
+        listen [::]:80;
+        server_name {{ alb_dns }};
+        root /home/ec2-user/raisetech-live8-sample-app/public;
+        
+        # アプリケーションの場所（ルート）
+        location / {
+            proxy_pass http://app_server;  # Pumaサーバーにリクエストを転送
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $host;
+            proxy_redirect off;
+        
+        try_files $uri/index.html $uri @app_server;  # 存在しない場合はPumaへ
+
+        }
+
+            # Pumaへのフォールバック処理
+        location @app_server {
+            proxy_pass http://app_server;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+    }
+        
+
+
+        error_page 404 /404.html;
+        location = /404.html {
+        }
+
+        error_page 500 502 503 504 /50x.html;
+        location = /500.html {
+
+	}
+
+
+
+# Settings for a TLS enabled server.
+#
+#    server {
+#        listen       443 ssl http2;
+#        listen       [::]:443 ssl http2;
+#        server_name  _;
+#        root         /usr/share/nginx/html;
+#
+#        ssl_certificate "/etc/pki/nginx/server.crt";
+#        ssl_certificate_key "/etc/pki/nginx/private/server.key";
+#        ssl_session_cache shared:SSL:1m;
+#        ssl_session_timeout  10m;
+#        ssl_ciphers PROFILE=SYSTEM;
+#        ssl_prefer_server_ciphers on;
+#
+#        # Load configuration files for the default server block.
+#        include /etc/nginx/default.d/*.conf;
+#
+#        error_page 404 /404.html;
+#            location = /40x.html {
+#        }
+#
+#        error_page 500 502 503 504 /50x.html;
+#            location = /50x.html {
+#        }
+#    }
+

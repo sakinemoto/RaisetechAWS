@@ -1,18 +1,189 @@
 version: 2.1
+
 orbs:
-  python: circleci/python@2.0.3
+  aws-cli: circleci/aws-cli@4.1.3
+  ansible-playbook: orbss/ansible-playbook@0.0.5
+
+parameters:
+  NameBase:
+    type: string
+    default: "lec13"
+
 jobs:
-  cfn-lint:
-    executor: python/default
+  cloudformation:
+    docker:
+      - image: circleci/python:3.8
     steps:
       - checkout
-      - run: pip install cfn-lint
+      - aws-cli/setup:
+          aws_access_key_id: AWS_ACCESS_KEY_ID
+          aws_secret_access_key: AWS_SECRET_ACCESS_KEY
+          region: AWS_DEFAULT_REGION
+          
       - run:
-          name: run cfn-lint
+          name: Deploy Network CloudFormation stack
           command: |
-            cfn-lint -i W3002 -t cloudformation/*.yml
+            aws cloudformation deploy \
+              --template-file cloudformation/network.yml \
+              --stack-name << pipeline.parameters.NameBase >>-network \
+              --parameter-overrides EnvironmentName=$ENVIRONMENT_NAME \
+              --capabilities CAPABILITY_NAMED_IAM
+            aws cloudformation wait stack-create-complete --stack-name << pipeline.parameters.NameBase >>-network
+      - run:
+          name: Deploy Application CloudFormation stack
+          command: |
+            aws cloudformation deploy \
+              --template-file cloudformation/application.yml \
+              --stack-name << pipeline.parameters.NameBase >>-application \
+              --parameter-overrides DBPassword=$DB_PASSWORD EnvironmentName=$ENVIRONMENT_NAME \
+              --capabilities CAPABILITY_NAMED_IAM
+
+
+      - run:
+          name: Write env vars to bash.env
+          command: |
+            echo "export AWS_EC2_PUBLIC=$(aws cloudformation describe-stacks --stack-name << pipeline.parameters.NameBase >>-application --query 'Stacks[].Outputs[?OutputKey==`EC2publicIP`].OutputValue' --output text)" >> $BASH_ENV
+            echo "export DB_USER=$(aws cloudformation describe-stacks --stack-name << pipeline.parameters.NameBase >>-application --query 'Stacks[].Outputs[?OutputKey==`DBUser`].OutputValue' --output text)" >> $BASH_ENV
+            echo "export DB_PASSWORD=$(aws cloudformation describe-stacks --stack-name << pipeline.parameters.NameBase >>-application --query 'Stacks[].Outputs[?OutputKey==`DBPassword`].OutputValue' --output text)" >> $BASH_ENV
+            echo "export DB_HOST=$(aws cloudformation describe-stacks --stack-name << pipeline.parameters.NameBase >>-application --query 'Stacks[].Outputs[?OutputKey==`DBhost`].OutputValue' --output text)" >> $BASH_ENV
+            echo "export S3_BUCKET=$(aws cloudformation describe-stacks --stack-name << pipeline.parameters.NameBase >>-application --query 'Stacks[].Outputs[?OutputKey==`S3bucketName`].OutputValue' --output text)" >> $BASH_ENV
+            echo "export ALB_HOST=$(aws cloudformation describe-stacks --stack-name << pipeline.parameters.NameBase >>-application --query 'Stacks[].Outputs[?OutputKey==`ALBendpoint`].OutputValue' --output text)" >> $BASH_ENV
+
+      - run:
+          command: 
+            cp $BASH_ENV bash.env
+
+      - persist_to_workspace:  # `bash.env` をワークスペースに保存
+          root: .
+          paths:
+            - bash.env
+      # - run:
+      #     name: Debug print EC2 IP directly
+      #     command: |
+      #       aws cloudformation describe-stacks \
+      #         --stack-name << pipeline.parameters.NameBase >>-application \
+      #         --query 'Stacks[].Outputs[?OutputKey==`EC2publicIP`].OutputValue' \
+      #         --output text 
+  ansible:
+    executor: ansible-playbook/default
+    steps:
+      - checkout
+      - attach_workspace:
+         at: .
+
+      - run:
+          command: 
+            cat bash.env >> $BASH_ENV
+
+      - run:
+          name: Check ENV var
+          command: |
+            echo "AWS_EC2_PUBLIC=$AWS_EC2_PUBLIC"
+            echo "DB_USER=$DB_USER"
+            echo "DB_PASSWORD=$DB_PASSWORD"
+            echo "DB_HOST=$DB_HOST"
+            echo "S3_BUCKET=$S3_BUCKET"
+
+      - run:
+          name: Install boto3 and botocore
+          command: |
+            pip install boto3 botocore
+      - run:
+          name: Verify boto3 installation
+          command: python -m pip show boto3
+      - run:
+          name: Verify botocore installation
+          command: python -m pip show botocore
+      - run:
+          name: Install Ansible
+          command: |
+            python -m pip install ansible
+      - run:
+          name: Check and Install Specific Version of amazon.aws Collection
+          command: |
+            if ! ansible-galaxy collection list | grep -q 'amazon.aws'; then
+              echo "amazon.aws collection is not installed. Installing version 3.5.0..."
+              ansible-galaxy collection install amazon.aws:3.5.0
+            else
+              echo "amazon.aws collection is already installed."
+            fi
+      - run:
+          name: Set up SSH Key
+          command: |
+            mkdir -p ~/.ssh
+            echo "$PRIVATE_KEY"  > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:jEeOv32OmEto8NyVF5+JukFhMiQl0zq1ivXSQXvWNLo"
+      - run:
+          name: Test SSH Connection
+          command: |
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$AWS_EC2_PUBLIC echo "SSH connection successful"
+  
+      
+      - run:
+          name: Run Ansible Playbook
+          command: ansible-playbook -i "$AWS_EC2_PUBLIC", -u ec2-user ansible/playbook.yml
+
+  serverspec:
+    docker:
+      - image: cimg/ruby:3.2.3
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          command: 
+            cat bash.env >> $BASH_ENV
+      - run:
+          name: Debug - check serverspec directory
+          command: |
+            pwd
+            echo "--- Checking project contents ---"
+            ls -la
+            echo "--- Checking serverspec direcry contents ---"
+            ls -la serverspec
+      - run:
+          name: Set up SSH Key
+          command: |
+            mkdir -p ~/.ssh
+            printf '%s\n' "$PRIVATE_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:jEeOv32OmEto8NyVF5+JukFhMiQl0zq1ivXSQXvWNLo"
+      - run:
+          name: Check id_rsa exists and is readable
+          command: |
+            ls -la ~/.ssh
+            cat ~/.ssh/id_rsa | head -n 5
+      - run:
+          name: Test SSH connection manually
+          command: |
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$AWS_EC2_PUBLIC "echo 'SSH connection OK'" || echo "❌ SSH failed"
+
+      - run:
+          name: bundle install
+          command: |
+            cd serverspec
+            bundle install
+      - run:
+          name: execute serverspec
+          command: |
+            cd serverspec
+            bundle exec rake spec
 
 workflows:
-  raisetech:
+  lecture13:
     jobs:
-      - cfn-lint
+      - cloudformation
+      - ansible:
+          requires:
+            - cloudformation
+      - serverspec:
+          requires:
+            - ansible
+

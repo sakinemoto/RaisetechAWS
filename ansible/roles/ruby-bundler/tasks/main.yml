@@ -1,0 +1,91 @@
+---
+# roles/ruby-bundler/tasks/main.yml
+- name: Display environment variables
+  ansible.builtin.command: env
+  register: env_output
+
+- debug:
+    msg: "{{ env_output.stdout_lines | select('search', 'DB_') }}"
+
+- name: Update all packages to the latest version
+  ansible.builtin.yum:
+    name: '*'
+    state: latest
+  become: true
+
+- name: Install Development Tools
+  ansible.builtin.yum:
+    name: "@Development Tools"
+    state: present
+  become: true
+
+- name: Install dependencies
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - gcc
+    - openssl-devel
+    - libyaml-devel
+    - libffi-devel
+    - readline-devel
+    - zlib-devel
+    - gdbm-devel
+    - ncurses-devel
+  become: true
+
+- name: Check if rbenv is installed
+  stat:
+    path: "{{ rbenv_root }}"
+  register: rbenv_installed
+
+- name: Clone rbenv repository
+  ansible.builtin.git:
+    repo: https://github.com/rbenv/rbenv.git
+    dest: "{{ rbenv_root }}"
+    version: master
+  when: not rbenv_installed.stat.exists
+
+- name: Ensure rbenv environment variables are in .bash_profile
+  ansible.builtin.lineinfile:
+    path: /home/ec2-user/.bash_profile
+    line: "{{ item }}"
+    insertafter: EOF
+  loop:
+    - 'export RBENV_ROOT={{ rbenv_root }}'
+    - 'export PATH=$RBENV_ROOT/bin:$PATH'
+    - 'eval "$(rbenv init -)"'
+  when: not rbenv_installed.stat.exists
+
+- name: Clone ruby-build repository
+  ansible.builtin.git:
+    repo: https://github.com/rbenv/ruby-build.git
+    dest: "{{ rbenv_root }}/plugins/ruby-build"
+    version: master
+  when: not rbenv_installed.stat.exists
+
+- name: Install Ruby {{ ruby_version }}
+  ansible.builtin.command: "{{ rbenv_root }}/bin/rbenv install {{ ruby_version }}"
+  args:
+    creates: "{{ rbenv_root }}/versions/{{ ruby_version }}"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+
+- name: Set Ruby {{ ruby_version }} as global version
+  ansible.builtin.command: "{{ rbenv_root }}/bin/rbenv global {{ ruby_version }}"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+
+- name: Rehash rbenv shims
+  ansible.builtin.command: "{{ rbenv_root }}/bin/rbenv rehash"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+
+- name: Install bundler
+  ansible.builtin.command: gem install bundler -v {{ bundler_version }}
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"

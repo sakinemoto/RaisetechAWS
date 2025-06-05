@@ -3,13 +3,17 @@
 ## Serverspecでテストコードを作成して、テストを成功させる（テスト定義は自由）
 
 Severspecとは：  
-- サーバー構成の確認をコードにより自動化できるツール　
+
+- サーバー構成の確認をコードにより自動化できるツール
 - RSpecというrubyで作られたテスティングフレームワークの機能を活用して作られている
+
 ---
+
 ### EC2にあるアプリをSSH経由でテストする
 前提  
 SSH接続可能なEC2がある  
 EC2にrubyアプリがある
+
 1. serverspecをローカルにインストール  
     `gem install serverspec`
 
@@ -49,7 +53,9 @@ Input target host name:  #EC２なのでパブリックIPアドレスまたは�
     `rspec`
 
 ---
+
 #### テストの内容  
+
 ```
 listen_port = 3000
 

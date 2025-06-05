@@ -1,0 +1,12 @@
+# roles/assets_precompile/tasks
+
+- name: Precompile assets
+  ansible.builtin.shell: |
+    source ~/.bash_profile
+    eval "$(rbenv init -)"
+    rake assets:precompile
+  args:
+    chdir: "{{ app_path }}"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"

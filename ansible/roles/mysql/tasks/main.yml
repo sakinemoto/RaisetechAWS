@@ -1,0 +1,61 @@
+---
+# roles/mysql/tasks/main.yml
+
+- name: Update all packages
+  ansible.builtin.yum:
+    name: '*'
+    state: latest
+  become: true
+
+- name: Remove MariaDB packages if installed
+  ansible.builtin.yum:
+    name: "{{ item }}"
+    state: absent
+  loop:
+    - mariadb-libs
+    - mariadb-server
+    - mariadb
+  ignore_errors: true
+  become: true
+
+- name: Import GPG keys
+  ansible.builtin.rpm_key:
+    state: present
+    key: https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+  become: true
+
+- name: Install MySQL repository RPM
+  ansible.builtin.get_url:
+    url: https://repo.mysql.com/mysql80-community-release-el7-7.noarch.rpm
+    dest: /tmp/mysql80-community-release-el7-7.noarch.rpm
+  become: true
+
+- name: Install the MySQL repo rpm
+  ansible.builtin.yum:
+    name: /tmp/mysql80-community-release-el7-7.noarch.rpm
+    state: present
+  become: true
+
+- name: Install MySQL client packages only
+  ansible.builtin.yum:
+    name:
+      - mysql
+      - mysql-community-devel
+    state: present
+  become: true
+
+- name: Remove downloaded MySQL repository package (if any)
+  ansible.builtin.file:
+    path: /tmp/mysql80-community-release-el7-7.noarch.rpm
+    state: absent
+  become: true
+
+- name: Debug DB_USER from environment
+  ansible.builtin.debug:
+    msg: "DB_USER: {{ lookup('env', 'DB_USER') }}"
+
+- name: Create database.yml
+  ansible.builtin.template:
+    src: database.yml.j2
+    dest: "{{ app_path }}/config/database.yml"
+  become: true

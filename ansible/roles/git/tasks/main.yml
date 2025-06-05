@@ -1,0 +1,15 @@
+---
+# roles/git/tasks/main.yml
+
+- name: Install Git using yum module
+  ansible.builtin.yum:
+    name: git
+    state: present
+  register: git_install_result
+
+- name: Clone repository with force overwrite
+  ansible.builtin.git:
+    repo: 'https://github.com/yuta-ushijima/raisetech-live8-sample-app.git'
+    dest: /home/ec2-user/raisetech-live8-sample-app
+    force: true
+    

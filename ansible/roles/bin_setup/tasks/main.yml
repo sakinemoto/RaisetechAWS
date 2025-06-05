@@ -1,0 +1,55 @@
+---
+# roles/bin_setup/task/main.yml
+
+- name: Check if swapfile exists
+  stat:
+    path: /swapfile
+  register: swapfile_exists
+
+- name: Disable swap
+  become: true
+  ansible.builtin.command: swapoff /swapfile
+  ignore_errors: true
+
+- name: Debug swapfile status
+  debug:
+    var: swapfile_exists
+  
+- name: Remove swapfile if exists
+  ansible.builtin.file:
+    path: /swapfile
+    state: absent
+  become: true
+
+- name: Create a new swap file
+  command: fallocate -l 1G /swapfile
+
+- name: Set the swap file permissions
+  file:
+    path: /swapfile
+    mode: '0600'
+
+- name: Format swap file
+  command: mkswap /swapfile
+
+- name: Enable the swap file
+  command: swapon /swapfile
+
+- name: Run bundle install with extended timeout
+  ansible.builtin.command: bundle install
+  args:
+    chdir: "{{ app_path }}"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"
+
+- name: Create and migrate database
+  ansible.builtin.shell: |
+    source ~/.bash_profile
+    eval "$(rbenv init -)"
+    rails db:create db:migrate
+  args:
+    chdir: "{{ app_path }}"
+  environment:
+    RBENV_ROOT: "{{ rbenv_root }}"
+    PATH: "{{ rbenv_root }}/bin:{{ rbenv_root }}/shims:{{ ansible_env.PATH }}"

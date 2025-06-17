@@ -6,7 +6,7 @@
 1. CI/CDツールを使い、AWSリソース構築からアプリケーションに実行環境構築、デプロイまで自動化
 1. Severspecで構築したサーバーに対して自動テスト
 
-- ソースコードは別リポジトリに格納  
+- ソースコードは別リポジトリに格納 ([AWS-lecture13](https://github.com/sakinemoto/AWS-lecture13.git)) 
 
 ### 構成図
 
